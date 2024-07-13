@@ -1,0 +1,36 @@
+- name: Ensure webservers are installed
+  hosts: app1
+  become: true
+
+  tasks:
+    - name: Ensure apache2 is installed
+      ansible.builtin.apt:
+        name: apache2
+        state: latest
+
+    - name: Ensure apache2 is enabled and started
+      ansible.builtin.systemd:
+        name: apache2
+        state: started
+        enabled: true
+
+    - name: Ensure port 80 is open in the firewall
+      ansible.builtin.ufw:
+        rule: allow
+        port: '80'
+        proto: tcp
+
+    - name: Ensure stub content is deployed
+      ansible.builtin.copy:
+        content: "Hello World"
+        dest: /var/www/html/index.html
+
+- name: Test web server deployment
+  hosts: localhost
+
+  tasks:
+    - name: Test web server
+      ansible.builtin.uri:
+        url: http://app1
+        method: GET
+        status_code: 200
